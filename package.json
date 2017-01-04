@@ -1,7 +1,7 @@
 {
-  "name": "node-slack-bot",
+  "name": "movie-bot",
   "version": "1.0.0",
-  "description": "A sample Beep Boop Node.js Slackbot",
+  "description": "A movie bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -23,6 +23,7 @@
   "homepage": "https://github.com/beepboophq/node-slack-bot#readme",
   "dependencies": {
     "beepboop-botkit": "^1.4.1",
-    "botkit": "~0.2.2"
+    "botkit": "^0.2.2",
+    "request": "^2.79.0"
   }
 }

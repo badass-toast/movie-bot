@@ -37,7 +37,7 @@ controller.hears(['movie search' && ""], ['ambient,message_received'], function(
 
     if (!error && response.statusCode === 200) {
       console.log(body);
-      var im
+      var image_url = body[1];
       bot.reply(message, 'Here is your movie Poster: ' +base_url+ '' +image_url+ '');
     } else {
       bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
