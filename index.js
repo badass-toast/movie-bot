@@ -55,7 +55,7 @@ controller.hears(['movie search (.*)'], ['ambient,message_received'], function(b
         } else {
           bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
         }
-      } else {
+      } else if(body.total_results == 0){
         bot.reply(message, 'I wasn\'t able to find this movie:sweat: I am very sorry:cry:');
       }
     });
