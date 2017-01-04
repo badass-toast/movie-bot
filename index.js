@@ -50,19 +50,7 @@ controller.hears(['movie search (.*)'], ['ambient,message_received'], function(b
           bot.reply(message, '*' + movie_title + '*');
           bot.reply(message, '' + discription + '');
           bot.reply(message, '_' + genre + ' ‧ ' + release + ' ‧ ' + vote + '/10_');
-          bot.reply(message, {
-            attachments: [{
-              title: 'Do you searched for this movie?',
-              callback_id: '123',
-              attachment_type: 'default',
-              actions: [{"name": "yes", "text": "yes thx", "value": "yes", "type": "button"}, {
-                "name": "no",
-                "text": "no, next",
-                "value": "no",
-                "type": "button"
-              }]
-            }]
-          })
+          bot.reply(message, {attachments: [{title: 'Do you searched for this movie?',callback_id: '123',attachment_type: 'default',actions: [{"name": "yes", "text": "yes thx", "value": "yes", "type": "button"}, {"name": "no","text": "no, next","value": "no", "type": "button"}]}]});
           bot.reply(message, '///////////////////////////////////////////////////////////////////////////////////////////////////////////////');
         } else {
           bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
