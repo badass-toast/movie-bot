@@ -31,27 +31,44 @@ controller.hears(['movie search (.*)'], ['ambient,message_received'], function(b
     var request = require("request");
     var query = message.match[1];
     var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +query+ "";
-    var g_url = 'https://api.themoviedb.org/3/genre/movie/list?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US';
     var base_url = "https://image.tmdb.org/t/p/w185";
 
     request({ url: url, json: true }, function (error, response, body) {
-    var image_url = body.results[0].poster_path;
-    var movie_title = body.results[0].title;
-    var discription = body.results[0].overview;
-    var release_uncut = body.results[0].release_date;
-    var release = release_uncut.substring(0,4);
-    var vote = body.results[0].vote_average;
-    var genre_id = body.results[0].genre_ids[0];
-    var genre = genre_find(genre_id);
-      if (!error && response.statusCode === 200) {
-        bot.reply(message, '///////////////////////////////////////////////////////////////////////////////////////////////////////////////');
-        bot.reply(message, '' +base_url+ '' +image_url+ '');
-        bot.reply(message, '*' +movie_title+ '*');
-        bot.reply(message, '' +discription+ '');
-        bot.reply(message, '_' +genre+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10_');
-        bot.reply(message, '///////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+      if(body.total_results != 0) {
+        console.log('bla');
+        var image_url = body.results[0].poster_path;
+        var movie_title = body.results[0].title;
+        var discription = body.results[0].overview;
+        var release_uncut = body.results[0].release_date;
+        var release = release_uncut.substring(0, 4);
+        var vote = body.results[0].vote_average;
+        var genre_id = body.results[0].genre_ids[0];
+        var genre = genre_find(genre_id);
+        if (!error && response.statusCode === 200) {
+          bot.reply(message, '///////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+          bot.reply(message, '' + base_url + '' + image_url + '');
+          bot.reply(message, '*' + movie_title + '*');
+          bot.reply(message, '' + discription + '');
+          bot.reply(message, '_' + genre + ' ‧ ' + release + ' ‧ ' + vote + '/10_');
+          bot.reply(message, {
+            attachments: [{
+              title: 'Do you searched for this movie?',
+              callback_id: '123',
+              attachment_type: 'default',
+              actions: [{"name": "yes", "text": "yes thx", "value": "yes", "type": "button"}, {
+                "name": "no",
+                "text": "no, next",
+                "value": "no",
+                "type": "button"
+              }]
+            }]
+          })
+          bot.reply(message, '///////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+        } else {
+          bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
+        }
       } else {
-        bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
+        bot.reply(message, 'I wasn\'t able to find this movie:sweat: I am very sorry:cry:');
       }
     });
 });
