@@ -1,77 +1,48 @@
-var Botkit = require('botkit')
-
-var token = process.env.SLACK_TOKEN
-
-var controller = Botkit.slackbot({
-  // reconnect to Slack RTM when connection goes bad
-  retry: Infinity,
-  debug: false
-})
-
-// Assume single team mode if we have a SLACK_TOKEN
-if (token) {
-  console.log('Starting in single-team mode')
-  controller.spawn({
-    token: token,
-    retry: Infinity
-  }).startRTM(function (err, bot, payload) {
-    if (err) {
-      throw new Error(err)
-    }
-
-    console.log('Connected to Slack RTM')
-  })
-// Otherwise assume multi-team mode - setup beep boop resourcer connection
-} else {
-  console.log('Starting in Beep Boop multi-team mode')
-  require('beepboop-botkit').start(controller, { debug: true })
+if (!process.env.SLACK_TOKEN) {
+  console.log('Error: Specify token in environment');
+  process.exit(1);
 }
 
-controller.on('bot_channel_join', function (bot, message) {
-  bot.reply(message, "I'm here!")
-})
 
-controller.hears(['hello', 'hi'], ['direct_mention'], function (bot, message) {
-  bot.reply(message, 'Hello.')
-})
 
-controller.hears(['hello', 'hi'], ['direct_message'], function (bot, message) {
-  bot.reply(message, 'Hello.')
-  bot.reply(message, 'It\'s nice to talk to you directly.')
-})
 
-controller.hears('.*', ['mention'], function (bot, message) {
-  bot.reply(message, 'You really do care about me. :heart:')
-})
+var Botkit = require('./node_modules/botkit/lib/Botkit.js');
+var os = require('os');
 
-controller.hears('help', ['direct_message', 'direct_mention'], function (bot, message) {
-  var help = 'I will respond to the following messages: \n' +
-      '`bot hi` for a simple message.\n' +
-      '`bot attachment` to see a Slack attachment message.\n' +
-      '`@<your bot\'s name>` to demonstrate detecting a mention.\n' +
-      '`bot help` to see this again.'
-  bot.reply(message, help)
-})
 
-controller.hears(['attachment'], ['direct_message', 'direct_mention'], function (bot, message) {
-  var text = 'Beep Beep Boop is a ridiculously simple hosting platform for your Slackbots.'
-  var attachments = [{
-    fallback: text,
-    pretext: 'We bring bots to life. :sunglasses: :thumbsup:',
-    title: 'Host, deploy and share your bot in seconds.',
-    image_url: 'https://storage.googleapis.com/beepboophq/_assets/bot-1.22f6fb.png',
-    title_link: 'https://beepboophq.com/',
-    text: text,
-    color: '#7CD197'
-  }]
+var controller = Botkit.slackbot({
+  send_via_rtm:true, debug: true
+});
 
-  bot.reply(message, {
-    attachments: attachments
-  }, function (err, resp) {
-    console.log(err, resp)
-  })
-})
+var bot = controller.spawn({
+  token: process.env.SLACK_TOKEN
+}).startRTM();
 
-controller.hears('.*', ['direct_message', 'direct_mention'], function (bot, message) {
-  bot.reply(message, 'Sorry <@' + message.user + '>, I don\'t understand. \n')
-})
+
+controller.hears(['identify yourself', 'who are you', 'what is your name'],
+    'direct_message,direct_mention,mention', function(bot, message) {
+
+      bot.reply(message,
+          'My name is Horse Gif. I am a bot that sends a horsegif, everytime I see "horse" in a message');
+
+    });
+
+controller.hears(['movie search' && ""], ['ambient,message_received'], function(bot, message) {
+  var request = require("request");
+  var query = 'kingsman';
+  var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +query+ "&region=CH";
+  var base_url = "https://image.tmdb.org/t/p/w500/";
+
+  request({ url: url, json: true }, function (error, response, body) {
+
+    if (!error && response.statusCode === 200) {
+      console.log(body);
+      var im
+      bot.reply(message, 'Here is your movie Poster: ' +base_url+ '' +image_url+ '');
+    } else {
+      bot.reply(message, 'There was a problem with the API. Sorry:cry: no Movie right now');
+    }
+  });
+});
+
+
