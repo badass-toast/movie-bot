@@ -61,8 +61,12 @@ controller.storage.teams.all(function(err,teams) {
 
 controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, message) {
   var movie_search_title = message.match[1];
-  console.log(movie_search_title);
+  var request = require("request");
+  var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
 
+  request({ url: url, json: true }, function (error, response, body) {
+    console.log(body.results);
+  });
 });
 
 /*var request = require("request");
@@ -90,9 +94,7 @@ request({ url: url, json: true }, function (error, response, body) {
     }
   });*/
 
-
-
-function genre_find(genre_id) {
+/*function genre_find(genre_id) {
   switch (genre_id) {
     case 28:
       return 'Action';
@@ -152,5 +154,5 @@ function genre_find(genre_id) {
       return 'Western';
       break;
   }
-}
+}*/
 
