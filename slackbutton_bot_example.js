@@ -65,9 +65,20 @@ controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, mes
   var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
 
   request({ url: url, json: true }, function (error, response, body) {
-    console.log(body.results);
+    var movies = body.results;
+
+    if (movies.length === 1) {
+      var movie_text = generate_movie_text(movies[0]);
+      bot.reply(message, movie_text);
+    }else {
+      bot.reply(message, 'worked');
+    }
   });
 });
+
+function generate_movie_text(title){
+  return title.title
+}
 
 /*var request = require("request");
 var query = message.match[1];
