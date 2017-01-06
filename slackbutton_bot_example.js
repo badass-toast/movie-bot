@@ -7,7 +7,7 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.port) {
 
 
 var controller = Botkit.slackbot({
-  json_file_store: './db_slackbutton_bot/', interactive_replies: true,
+  json_file_store: './db_slackbutton_bot/', interactive_replies: true, debug: false
 }).configureSlackApp(
   {
     clientId: process.env.clientId,
@@ -58,28 +58,29 @@ controller.storage.teams.all(function(err,teams) {
 
 });
 
-controller.on('interactive_message_callback', function(bot, message) {
-  console.log(message.actions[0].value);
-  console.log(message.actions[0].name);
-});
+var request = require("request");
+var base_url = "https://image.tmdb.org/t/p/w185";
 
 controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, message) {
   var movie_search_title = message.match[1];
-  var request = require("request");
   var url_query = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
-  //var url_id = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
 
   request({ url: url_query, json: true }, function (error, response, body) {
     var movies = body.results;
 
     if (movies.length === 1) {
-      var movie_text = generate_movie_text(movies[0]);
-      bot.reply(message, movie_text);
-    }else {
+      var movie_id_gen = body.results[0].id;
+      var url_id = "https://api.themoviedb.org/3/movie/" +movie_id_gen+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
+      request({ url: url_id, json: true }, function (error, response, body) {
+        bot.reply(message, generate_movie_text(body));
+      })
+    }else if(body.total_results === 0) {
+        bot.reply(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
+    }else{
       bot.reply(message, {
         attachments:[
           {
-            title: 'Which movie did you mean?',
+            title: 'There were more than one movie with this name. Choose one below or try to be more specific!',
             callback_id: '123',
             attachment_type: 'default',
             actions: generate_buttons(movies)
@@ -90,13 +91,27 @@ controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, mes
   });
 });
 
+controller.on('interactive_message_callback', function(bot, message) {
+  var movie_id = message.actions[0].value;
+  var url_id_call = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
+  request({ url: url_id_call, json: true }, function (error, response, body) {
+    var movie_text = generate_movie_text(body);
+    bot.reply(message, {
+      text: movie_text
+    });
+    bot.api.chat.delete({
+      ts: message.message_ts,
+      channel: message.channel
+    });
+  })
+});
+
 function generate_buttons(movies){
   var movie_buttons = [];
-  if (movies.length>5) {
+  var length = movies.length;
+  if (length>5) {
     //slack api limits buttons to 5 at a time so if there are more than 5 movies it has to load more than it actually prints.
-    var length = 5;
-  }else{
-    var length = movies.length
+    length = 5;
   }
   for(var i = 0; i<length;i++){
     movie_buttons.push(
@@ -107,98 +122,32 @@ function generate_buttons(movies){
       "type": "button"
     });
   }
-  console.log(movie_buttons);
   return movie_buttons;
 }
 
-function generate_movie_text(title){
-  return title.title
+function generate_movie_text(movies){
+  var image_url = movies.poster_path;
+  var movie_title = movies.title;
+  var discription = movies.overview;
+  var release_uncut = movies.release_date;
+  var release = release_uncut.substring(0, 4);
+  var vote = movies.vote_average;
+  var genre_id = movies.genres[0].name;
+  var time_unfunc = movies.runtime;
+  var runtime = time_func(time_unfunc);
+  var homepage = null;
+  if (movies.homepage === '') {
+    homepage = 'There is ni website for this movie!';
+  } else {
+    homepage = movies.homepage.substring(7);
+  }
+  return ''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\nMore --> ' +homepage+ '';
 }
 
-/*var request = require("request");
-var query = message.match[1];
-var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +query+ "";
-var base_url = "https://image.tmdb.org/t/p/w185";
 
-request({ url: url, json: true }, function (error, response, body) {
-  if(body.total_results != 0) {
-    var image_url = body.results[0].poster_path;
-    var movie_title = body.results[0].title;
-    var discription = body.results[0].overview;
-    var release_uncut = body.results[0].release_date;
-    var release = release_uncut.substring(0, 4);
-    var vote = body.results[0].vote_average;
-    var genre_id = body.results[0].genre_ids[0];
-    var genre = genre_find(genre_id);
-    if (!error && response.statusCode === 200) {
-      bot.reply(message, '' + base_url + '' + image_url + '');
-      bot.reply(message, '*' + movie_title + '*');
-      bot.reply(message, '' + discription + '');
-      bot.reply(message, '_' + genre + ' ‧ ' + release + ' ‧ ' + vote + '/10_');
-    } else if(body.total_results == 0){
-      bot.reply(message, 'I wasn\'t able to find this movie:sweat: I am very sorry:cry:');
-    }
-  });*/
-
-/*function genre_find(genre_id) {
-  switch (genre_id) {
-    case 28:
-      return 'Action';
-      break;
-    case 12:
-      return 'Adventure';
-      break;
-    case 16:
-      return 'Animation';
-      break;
-    case 35:
-      return 'Comedy';
-      break;
-    case 80:
-      return 'Crime';
-      break;
-    case 99:
-      return 'Documentary';
-      break;
-    case 18:
-      return 'Drama';
-      break;
-    case 10751:
-      return 'Family';
-      break;
-    case 14:
-      return 'Fantasy';
-      break;
-    case 36:
-      return 'History';
-      break;
-    case 27:
-      return 'Horror';
-      break;
-    case 10402:
-      return 'Music';
-      break;
-    case 9648:
-      return 'Mystery';
-      break;
-    case 10749:
-      return 'Romance';
-      break;
-    case 878:
-      return 'Science Fiction';
-      break;
-    case 10770:
-      return 'TV Movie';
-      break;
-    case 53:
-      return 'Thriller';
-      break;
-    case 10752:
-      return 'War';
-      break;
-    case 37:
-      return 'Western';
-      break;
-  }
-}*/
+function time_func(time) {
+  var hours = Math.trunc(time/60);
+  var minutes = time % 60;
+  return '' +hours+ 'h ' +minutes+ 'm';
+}
 
