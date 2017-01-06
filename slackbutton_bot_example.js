@@ -58,36 +58,57 @@ controller.storage.teams.all(function(err,teams) {
 
 });
 
+controller.on('interactive_message_callback', function(bot, message) {
+  console.log(message.actions[0].value);
+  console.log(message.actions[0].name);
+});
 
 controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, message) {
   var movie_search_title = message.match[1];
   var request = require("request");
-  var url = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
+  var url_query = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
+  //var url_id = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
 
-  request({ url: url, json: true }, function (error, response, body) {
+  request({ url: url_query, json: true }, function (error, response, body) {
     var movies = body.results;
 
     if (movies.length === 1) {
       var movie_text = generate_movie_text(movies[0]);
       bot.reply(message, movie_text);
     }else {
-      generate_buttons(movies.length, movies);
-
+      bot.reply(message, {
+        attachments:[
+          {
+            title: 'Which movie did you mean?',
+            callback_id: '123',
+            attachment_type: 'default',
+            actions: generate_buttons(movies)
+          }
+        ]
+      })
     }
   });
 });
 
-function generate_buttons(length, movies){
+function generate_buttons(movies){
+  var movie_buttons = [];
+  if (movies.length>5) {
+    //slack api limits buttons to 5 at a time so if there are more than 5 movies it has to load more than it actually prints.
+    var length = 5;
+  }else{
+    var length = movies.length
+  }
   for(var i = 0; i<length;i++){
-    var movie_buttons = [];
     movie_buttons.push(
     {
-      "name":i,
+      "name":movies[i].title,
       "text": movies[i].title,
-      "value": i,
+      "value": movies[i].id,
       "type": "button"
     });
   }
+  console.log(movie_buttons);
+  return movie_buttons;
 }
 
 function generate_movie_text(title){
