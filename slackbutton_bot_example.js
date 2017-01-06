@@ -71,10 +71,24 @@ controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, mes
       var movie_text = generate_movie_text(movies[0]);
       bot.reply(message, movie_text);
     }else {
-      bot.reply(message, 'worked');
+      generate_buttons(movies.length, movies);
+
     }
   });
 });
+
+function generate_buttons(length, movies){
+  for(var i = 0; i<length;i++){
+    var movie_buttons = [];
+    movie_buttons.push(
+    {
+      "name":i,
+      "text": movies[i].title,
+      "value": i,
+      "type": "button"
+    });
+  }
+}
 
 function generate_movie_text(title){
   return title.title
