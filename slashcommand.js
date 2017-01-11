@@ -77,7 +77,6 @@ controller.on('slash_command', function (slashCommand, message) {
                 slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type `/movie star wars` :smile:");
                 return;
             }else if(message.text != "") {
-                console.log(message);
                 var movie_search_title = message.text;
                 var url_query = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
 
@@ -93,7 +92,7 @@ controller.on('slash_command', function (slashCommand, message) {
                     }else if(body.total_results === 0) {
                         slashCommand.replyPrivate(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
                     }else{
-                        slashCommand.replyInteractive(message, {
+                        slashCommand.replyPublic(message, {
                             attachments:[
                                 {
                                     title: 'There were more than one movie with this name. Choose one below or try to be more specific!',
@@ -117,18 +116,10 @@ controller.on('slash_command', function (slashCommand, message) {
 ;
 
 controller.on('interactive_message_callback', function(slashCommand, message) {
-    console.log("###########################################################");
     var movie_id = message.actions[0].value;
     var url_id_call = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
     request({ url: url_id_call, json: true }, function (error, response, body) {
-        var movie_text = generate_movie_text(body);
-        slashCommand.replyPrivate(message, {
-            text: movie_text
-        });
-        bot.api.chat.delete({
-            ts: message.message_ts,
-            channel: message.channel
-        });
+        slashCommand.replyPublicDelayed(message, generate_movie_text(body));
     })
 });
 
