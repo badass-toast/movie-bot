@@ -4,7 +4,7 @@
   "description": "A movie bot",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node slashcommand2.js"
   },
   "repository": {
     "type": "git",
