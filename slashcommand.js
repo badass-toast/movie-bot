@@ -74,7 +74,7 @@ controller.on('slash_command', function (slashCommand, message) {
 
 
             if (message.text === "") {
-                slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type `/movie star wars episode 4` :smile: \n You have to be very specific!");
+                slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!");
                 return;
             }else if(message.text != "") {
                 var movie_search_title = message.text;
