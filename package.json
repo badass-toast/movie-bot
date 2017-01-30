@@ -4,6 +4,7 @@
   "description": "A movie bot",
   "main": "index.js",
   "scripts": {
+    "test": "./node_modules/.bin/eslint slashcommand.js",
     "start": "node slashcommand.js"
   },
   "repository": {
@@ -26,5 +27,8 @@
     "botkit": "^0.2.2",
     "express": "^4.14.0",
     "request": "^2.79.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.14.1"
   }
 }
