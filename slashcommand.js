@@ -154,7 +154,7 @@ function generate_movie_text(movies){
     var runtime = time_func(time_unfunc);
     var homepage = '';
     var more = '';
-    if (movies.homepage !== '' || movies.homepage !== null) {
+    if (movies.homepage !== '') {
         homepage = movies.homepage.substring(7);
         more = 'More--> '
     }
