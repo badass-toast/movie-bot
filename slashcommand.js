@@ -89,27 +89,6 @@ controller.on('slash_command', function (slashCommand, message) {
                         var url_id = "https://api.themoviedb.org/3/movie/" +movie_id_gen+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
                         request({ url: url_id, json: true }, function (error, response, body) {
                             slashCommand.replyPublic(message, generate_movie_text(body));
-                            slashCommand.replyPrivateDelayed(message, {
-                                attachments:[
-                                    {
-                                        title: 'Is this the movie you searched for?',
-                                        callback_id: '123',
-                                        attachment_type: 'default',
-                                        actions: [{
-                                            "name": "Yes!:smile:",
-                                            "text": "Yes!:smile:",
-                                            "value": "y",
-                                            "type": "button",
-                                        },
-                                        {
-                                            "name": "Nope!:cry:",
-                                            "text": "Nope!:cry:",
-                                            "value": "n",
-                                            "type": "button",
-                                        }]
-                            }
-                                ]
-                            });
                         })
                     }else if(body.total_results === 0) {
                         slashCommand.replyPrivate(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
@@ -125,17 +104,6 @@ controller.on('slash_command', function (slashCommand, message) {
 
 })
 ;
-
-controller.on('interactive_message_callback', function(slashCommand, message) {
-    var answer = message.actions[0].value;
-
-    if(answer === "y"){
-        slashCommand.replyPrivateDelayed(message, "Great:smile:");
-    }else if(answer === "n"){
-        slashCommand.replyPrivateDelayed(message, "I'm sorry for that. Try to be more specific. (This got reported)");
-        console.log("######################################\n"+message+""+slashCommand+"\n############################################");
-    }
-});
 
 function generate_movie_text(movies){
     var image_url = movies.poster_path;
