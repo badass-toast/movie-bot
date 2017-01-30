@@ -74,7 +74,7 @@ controller.on('slash_command', function (slashCommand, message) {
 
 
             if (message.text === "") {
-                slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type `/movie star wars` :smile:");
+                slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type `/movie star wars episode 4` :smile: \n >You have to be very specific!");
                 return;
             }else if(message.text != "") {
                 var movie_search_title = message.text;
@@ -83,25 +83,36 @@ controller.on('slash_command', function (slashCommand, message) {
                 request({ url: url_query, json: true }, function (error, response, body) {
                     var movies = body.results;
 
-                    if (movies.length === 1) {
+                    if (movies.length !== 0) {
                         var movie_id_gen = body.results[0].id;
+                        console.log(movie_id_gen);
                         var url_id = "https://api.themoviedb.org/3/movie/" +movie_id_gen+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
                         request({ url: url_id, json: true }, function (error, response, body) {
                             slashCommand.replyPublic(message, generate_movie_text(body));
+                            slashCommand.replyPrivateDelayed(message, {
+                                attachments:[
+                                    {
+                                        title: 'Is this the movie you searched for?',
+                                        callback_id: '123',
+                                        attachment_type: 'default',
+                                        actions: [{
+                                            "name": "Yes!:smile:",
+                                            "text": "Yes!:smile:",
+                                            "value": "y",
+                                            "type": "button",
+                                        },
+                                        {
+                                            "name": "Nope!:cry:",
+                                            "text": "Nope!:cry:",
+                                            "value": "n",
+                                            "type": "button",
+                                        }]
+                            }
+                                ]
+                            });
                         })
                     }else if(body.total_results === 0) {
                         slashCommand.replyPrivate(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
-                    }else{
-                        slashCommand.replyPublic(message, {
-                            attachments:[
-                                {
-                                    title: 'There were more than one movie with this name. Choose one below or try to be more specific!',
-                                    callback_id: '123',
-                                    attachment_type: 'default',
-                                    actions: generate_buttons(movies)
-                                }
-                            ]
-                        })
                     }
                 });
             }
@@ -116,31 +127,15 @@ controller.on('slash_command', function (slashCommand, message) {
 ;
 
 controller.on('interactive_message_callback', function(slashCommand, message) {
-    var movie_id = message.actions[0].value;
-    var url_id_call = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
-    request({ url: url_id_call, json: true }, function (error, response, body) {
-        slashCommand.replyPublicDelayed(message, generate_movie_text(body));
-    })
-});
+    var answer = message.actions[0].value;
 
-function generate_buttons(movies){
-    var movie_buttons = [];
-    var length = movies.length;
-    if (length>5) {
-        //slack api limits buttons to 5 at a time so if there are more than 5 movies it has to load more than it actually prints.
-        length = 5;
+    if(answer === "y"){
+        slashCommand.replyPrivateDelayed(message, "Great:smile:");
+    }else if(answer === "n"){
+        slashCommand.replyPrivateDelayed(message, "I'm sorry for that. Try to be more specific. (This got reported)");
+        console.log("######################################\n"+message+""+slashCommand+"\n############################################");
     }
-    for(var i = 0; i<length;i++){
-        movie_buttons.push(
-            {
-                "name":movies[i].title,
-                "text": movies[i].title,
-                "value": movies[i].id,
-                "type": "button"
-            });
-    }
-    return movie_buttons;
-}
+});
 
 function generate_movie_text(movies){
     var image_url = movies.poster_path;
@@ -149,16 +144,21 @@ function generate_movie_text(movies){
     var release_uncut = movies.release_date;
     var release = release_uncut.substring(0, 4);
     var vote = movies.vote_average;
-    var genre_id = movies.genres[0].name;
+    var genre_id = "";
+    if(movies.genres[0] == undefined){
+        genre_id = "Who knows?";
+    }else if(movies.genres[0].name != undefined){
+        genre_id = movies.genres[0].name;
+    }
     var time_unfunc = movies.runtime;
     var runtime = time_func(time_unfunc);
-    var homepage = null;
-    if (movies.homepage === '') {
-        homepage = 'There is no website available for this movie!';
-    } else {
+    var homepage = '';
+    var more = '';
+    if (movies.homepage !== '' || movies.homepage !== null) {
         homepage = movies.homepage.substring(7);
+        more = 'More--> '
     }
-    return ''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\nMore --> ' +homepage+ '';
+    return ''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\n' +more+ '' +homepage+ '';
 }
 
 
