@@ -27,7 +27,7 @@
 /* Uses the slack button feature to offer a real time bot to multiple teams */
 var Botkit = require('botkit');
 
-if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT || !process.env.VERIFICATION_TOKEN) {
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.VERIFICATION_TOKEN) {
     console.log('Error: Specify CLIENT_ID, CLIENT_SECRET, VERIFICATION_TOKEN and PORT in environment');
     process.exit(1);
 }
@@ -52,7 +52,7 @@ var controller = Botkit.slackbot(config).configureSlackApp(
     }
 );
 
-controller.setupWebserver(process.env.PORT, function (err, webserver) {
+/*controller.setupWebserver(process.env.PORT, function (err, webserver) {
     controller.createWebhookEndpoints(controller.webserver);
     controller.createHomepageEndpoint(controller.webserver);
     controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
@@ -62,7 +62,7 @@ controller.setupWebserver(process.env.PORT, function (err, webserver) {
             res.send('Success!');
         }
     });
-});
+});*/
 
 var request = require("request");
 var base_url = "https://image.tmdb.org/t/p/w185";
