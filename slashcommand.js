@@ -28,7 +28,6 @@
 var Botkit = require('botkit');
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT || !process.env.VERIFICATION_TOKEN) {
-    console.log('Error: Specify CLIENT_ID, CLIENT_SECRET, VERIFICATION_TOKEN and PORT in environment');
     process.exit(1);
 }
 
@@ -64,32 +63,28 @@ controller.setupWebserver(process.env.PORT, function (err, webserver) {
     });
 });
 
-var request = require("request");
-var base_url = "https://image.tmdb.org/t/p/w185";
+var request = require('request');
+var base_url = 'https://image.tmdb.org/t/p/w185';
 controller.on('slash_command', function (slashCommand, message) {
-
     switch (message.command) {
-        case "/movie":
+        case '/movie':
             if (message.token !== process.env.VERIFICATION_TOKEN) return;
-
-
-            if (message.text === "") {
-                slashCommand.replyPrivate(message, "I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!");
+            if (message.text === '') {
+                slashCommand.replyPrivate(message, 'I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!');
                 return;
-            }else if(message.text != "") {
+            }else if(message.text != '') {
                 var movie_search_title = message.text;
-                var url_query = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
+                var url_query = 'https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=' +movie_search_title+ '';
 
                 request({ url: url_query, json: true }, function (error, response, body) {
                     var movies = body.results;
 
                     if (movies.length !== 0) {
                         var movie_id_gen = body.results[0].id;
-                        console.log(movie_id_gen);
-                        var url_id = "https://api.themoviedb.org/3/movie/" +movie_id_gen+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
+                        var url_id = 'https://api.themoviedb.org/3/movie/' +movie_id_gen+ '?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US';
                         request({ url: url_id, json: true }, function (error, response, body) {
                             slashCommand.replyPublic(message, generate_movie_text(body));
-                        })
+                        });
                     }else if(body.total_results === 0) {
                         slashCommand.replyPrivate(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
                     }
@@ -97,8 +92,9 @@ controller.on('slash_command', function (slashCommand, message) {
             }
 
             break;
+
         default:
-            slashCommand.replyPrivate(message, "Darn something went wrong. Sorry...");
+            slashCommand.replyPrivate(message, 'Darn something went wrong. Sorry...');
 
     }
 
@@ -112,9 +108,9 @@ function generate_movie_text(movies){
     var release_uncut = movies.release_date;
     var release = release_uncut.substring(0, 4);
     var vote = movies.vote_average;
-    var genre_id = "";
+    var genre_id = '';
     if(movies.genres[0] == undefined){
-        genre_id = "Who knows?";
+        genre_id = 'Who knows?';
     }else if(movies.genres[0].name != undefined){
         genre_id = movies.genres[0].name;
     }
@@ -124,9 +120,9 @@ function generate_movie_text(movies){
     var more = '';
     if (movies.homepage !== '') {
         homepage = movies.homepage.substring(7);
-        more = 'More--> '
+        more = 'More--> ';
     }
-    return ''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\n' +more+ '' +homepage+ '';
+    return (''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\n' +more+ '' +homepage+ '');
 }
 
 
