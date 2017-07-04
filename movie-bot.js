@@ -36,6 +36,7 @@ controller.on('movie',function(bot,message) {
 
 });
 
+/*
 var request = require("request");
 var base_url = "https://image.tmdb.org/t/p/w185";
 
@@ -127,4 +128,4 @@ function time_func(time) {
   var hours = Math.trunc(time/60);
   var minutes = time % 60;
   return '' +hours+ 'h ' +minutes+ 'm';
-}
+}*/
