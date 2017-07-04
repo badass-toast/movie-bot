@@ -43,6 +43,11 @@ if (process.env.MONGOLAB_URI) {
     };
 }
 
+bot.api.team.info {}, (err, response) ->
+  controller.saveTeam(response.team, ->
+    console.log "Saved the team information..."
+  )
+
 var controller = Botkit.slackbot(config).configureSlackApp(
     {
         clientId: process.env.CLIENT_ID,
