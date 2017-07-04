@@ -1,162 +1,130 @@
-var Botkit = require('./node_modules/botkit/lib/Botkit.js');
+var Botkit = require('botkit');
 
-if (!process.env.clientId || !process.env.clientSecret || !process.env.port) {
-    console.log('Error: Specify clientId clientSecret and port in environment');
-    process.exit(1);
+if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT || !process.env.VERIFICATION_TOKEN) {
+  console.log('Error: Specify clientId clientSecret and port in environment');
+  process.exit(1);
 }
-
 
 var controller = Botkit.slackbot({
-    json_file_store: './db_slackbutton_bot/',
-    // rtm_receive_messages: false, // disable rtm_receive_messages if you enable events api
-}).configureSlackApp(
-    {
-        clientId: process.env.clientId,
-        clientSecret: process.env.clientSecret,
-        redirectUri: process.env.redirectUri, // optional parameter passed to slackbutton oauth flow
-        scopes: ['bot'],
-    }
-);
-
-controller.setupWebserver(process.env.port,function(err,webserver) {
-    controller.createWebhookEndpoints(controller.webserver);
-    controller.createHomepageEndpoint(controller.webserver);
-    controller.createOauthEndpoints(controller.webserver,function(err,req,res) {
-        if (err) {
-            res.status(500).send('ERROR: ' + err);
-        } else {
-            res.send('Success!');
-        }
-    });
+  json_file_store: './db_slackbutton_slashcommand/',
+}).configureSlackApp({
+  clientId: process.env.CLIENT_ID,
+  clientSecret: process
+    .env.CLIENT_SECRET,
+  scopes: ['commands'],
 });
 
 
-// just a simple way to make sure we don't
-// connect to the RTM twice for the same team
-var _bots = {};
-function trackBot(bot) {
-    _bots[bot.config.token] = bot;
-}
+controller.setupWebserver(process.env.PORT,function(err,webserver) {
 
-controller.on('create_bot',function(bot,config) {
+  controller.createWebhookEndpoints(controller.webserver);
 
-    if (_bots[bot.config.token]) {
-        // already online! do nothing.
-    } else {
-        bot.startRTM(function(err) {
-
-            if (!err) {
-                trackBot(bot);
-            }
-
-            bot.startPrivateConversation({user: config.createdBy},function(err,convo) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    convo.say('I am a bot that has just joined your team');
-                    convo.say('You must now /invite me to a channel so that I can be of use!');
-                }
-            });
-
-        });
-    }
-
-});
-
-
-// Handle events related to the websocket connection to Slack
-controller.on('rtm_open',function(bot) {
-    console.log('** The RTM api just connected!');
-});
-
-controller.on('rtm_close',function(bot) {
-    console.log('** The RTM api just closed');
-    // you may want to attempt to re-open
-});
-
-controller.hears('hello','direct_message',function(bot,message) {
-    bot.reply(message,'Hello!');
-});
-
-controller.hears('^stop','direct_message',function(bot,message) {
-    bot.reply(message,'Goodbye');
-    bot.rtm.close();
-});
-
-controller.on(['direct_message','mention','direct_mention'],function(bot,message) {
-    bot.api.reactions.add({
-        timestamp: message.ts,
-        channel: message.channel,
-        name: 'robot_face',
-    },function(err) {
-        if (err) { console.log(err) }
-        bot.reply(message,'I heard you loud and clear boss.');
-    });
-});
-
-controller.storage.teams.all(function(err,teams) {
-
+  controller.createOauthEndpoints(controller.webserver,function(err,req,res) {
     if (err) {
-        throw new Error(err);
+      res.status(500).send('ERROR: ' + err);
+    } else {
+      res.send('Success!');
     }
+  });
+});
 
-    // connect all teams with bots up to slack!
-    for (var t  in teams) {
-        if (teams[t].bot) {
-            controller.spawn(teams[t]).startRTM(function(err, bot) {
-                if (err) {
-                    console.log('Error connecting bot to Slack:',err);
-                } else {
-                    trackBot(bot);
-                }
-            });
-        }
-    }
+
+controller.on('movie',function(bot,message) {
+
+  bot.replyPublic(message,'<@' + message.user + '> is cool!');
+  bot.replyPrivate(message,'*nudge nudge wink wink*');
 
 });
 
-controller.hears('start', 'direct_message', function(bot, message) {
+var request = require("request");
+var base_url = "https://image.tmdb.org/t/p/w185";
 
-    askYesNo(bot, message);
-});
+controller.hears(['movie (.*)'], ['ambient,message_received'], function(bot, message) {
+  var movie_search_title = message.match[1];
+  var url_query = "https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=" +movie_search_title+ "";
 
-var colors = ['blue', 'green', '...'];
+  request({ url: url_query, json: true }, function (error, response, body) {
+    var movies = body.results;
 
-// receive an interactive message, and reply with a message that will replace the original
-controller.on('interactive_message_callback', function(bot, message) {
-    if(message.actions[0].value === 'no') {
-        askYesNo(bot, message);
-    }
-});
-
-function askYesNo(bot, message) {
-    bot.reply(message, {
+    if (movies.length === 1) {
+      var movie_id_gen = body.results[0].id;
+      var url_id = "https://api.themoviedb.org/3/movie/" +movie_id_gen+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
+      request({ url: url_id, json: true }, function (error, response, body) {
+        bot.reply(message, generate_movie_text(body));
+      })
+    }else if(body.total_results === 0) {
+      bot.reply(message, 'I wasn\'t able to find any movies by that name:sweat:. Please try to be more specific');
+    }else{
+      bot.reply(message, {
         attachments:[
-            {
-                title: 'Do you want to interact with my buttons?',
-                callback_id: '123',
-                attachment_type: 'default',
-                actions: generate_buttons()
-            }
+          {
+            title: 'There were more than one movie with this name. Choose one below or try to be more specific!',
+            callback_id: '123',
+            attachment_type: 'default',
+            actions: generate_buttons(movies)
+          }
         ]
+      })
+    }
+  });
+});
+
+controller.on('interactive_message_callback', function(bot, message) {
+  var movie_id = message.actions[0].value;
+  var url_id_call = "https://api.themoviedb.org/3/movie/" +movie_id+ "?api_key=87a3acc12bd88c311e7dcc9c41542560&language=en-US";
+  request({ url: url_id_call, json: true }, function (error, response, body) {
+    var movie_text = generate_movie_text(body);
+    bot.reply(message, {
+      text: movie_text
     });
+    bot.api.chat.delete({
+      ts: message.message_ts,
+      channel: message.channel
+    });
+  })
+});
+
+function generate_buttons(movies){
+  var movie_buttons = [];
+  var length = movies.length;
+  if (length>5) {
+    //slack api limits buttons to 5 at a time so if there are more than 5 movies it has to load more than it actually prints.
+    length = 5;
+  }
+  for(var i = 0; i<length;i++){
+    movie_buttons.push(
+      {
+        "name":movies[i].title,
+        "text": movies[i].title,
+        "value": movies[i].id,
+        "type": "button"
+      });
+  }
+  return movie_buttons;
 }
 
-function generate_buttons() {
-    var movie_buttons = [];
-    movie_buttons.push();
-    return  [
-        {
-            "name":"yes",
-            "text": "Yes",
-            "value": "yes",
-            "type": "button",
-        },
-        {
-            "name":"no",
-            "text": "Nohj dfshjd shjkdfsj hkdfsjkh jkhdfs",
-            "value": "no",
-            "type": "button",
-        }
-    ];
+function generate_movie_text(movies){
+  var image_url = movies.poster_path;
+  var movie_title = movies.title;
+  var discription = movies.overview;
+  var release_uncut = movies.release_date;
+  var release = release_uncut.substring(0, 4);
+  var vote = movies.vote_average;
+  var genre_id = movies.genres[0].name;
+  var time_unfunc = movies.runtime;
+  var runtime = time_func(time_unfunc);
+  var homepage = null;
+  if (movies.homepage === '') {
+    homepage = 'There is ni website for this movie!';
+  } else {
+    homepage = movies.homepage.substring(7);
+  }
+  return ''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\nMore --> ' +homepage+ '';
+}
+
+
+function time_func(time) {
+  var hours = Math.trunc(time/60);
+  var minutes = time % 60;
+  return '' +hours+ 'h ' +minutes+ 'm';
 }

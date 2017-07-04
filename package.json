@@ -4,8 +4,8 @@
   "description": "A movie bot",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/eslint slashcommand.js",
-    "start": "node slashcommand.js"
+    "test": "./node_modules/.bin/eslint movie-bot.js",
+    "start": "node movie-bot.js"
   },
   "repository": {
     "type": "git",
