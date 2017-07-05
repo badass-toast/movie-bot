@@ -10,12 +10,6 @@ if (!process.env.Client_ID) {
   console.log('Error: Specify port in environment')
 }
 
-
-if (!process.env.Client_ID || !process.env.Client_Secret || !process.env.Verification_Token|| !process.env.PORT) {
-  console.log('Error: Specify clientId clientSecret and port in environment');
-  process.exit(1);
-}
-
 var controller = Botkit.slackbot({
   json_file_store: './db_slackbutton_slashcommand/',
 }).configureSlackApp({
