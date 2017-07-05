@@ -1,5 +1,16 @@
 var Botkit = require('botkit');
 
+if (!process.env.Client_ID) {
+  console.log('Error: Specify client Id in environment')
+} else if (!process.env.Client_Secret) {
+  console.log('Error: Specify client secret in environment')
+} else if (!process.env.Verification_Token) {
+  console.log('Error: Specify Verification token in environment')
+}  else if (!process.env.PORT) {
+  console.log('Error: Specify port in environment')
+}
+
+
 if (!process.env.Client_ID || !process.env.Client_Secret || !process.env.Verification_Token|| !process.env.PORT) {
   console.log('Error: Specify clientId clientSecret and port in environment');
   process.exit(1);
