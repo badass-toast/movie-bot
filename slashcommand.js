@@ -63,7 +63,7 @@ controller.on('slash_command', function (slashCommand, message) {
             if (message.text === '') {
                 slashCommand.replyPrivate(message, 'I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!');
                 return;
-            }else if(message.text != '') {
+            }else if(message.text !== '') {
                 var movie_search_title = message.text;
                 var url_query = 'https://api.themoviedb.org/3/search/movie?api_key=87a3acc12bd88c311e7dcc9c41542560&query=' +movie_search_title+ '';
 
