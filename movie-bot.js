@@ -1,6 +1,6 @@
 var Botkit = require('botkit');
 
-if (!process.env.CLIENT_ID || !process.env.CLIENT_ID || !process.env.SLACK_VERIFY_TOKEN) {
+if (!process.env.PORT) {
   console.log('Error: Specify clientId clientSecret and port in environment');
   process.exit(1);
 }
@@ -14,7 +14,7 @@ var controller = Botkit.slackbot({
 });
 
 
-controller.setupWebserver('8000',function(err,webserver) {
+controller.setupWebserver(process.env.PORT,function(err,webserver) {
 
   controller.createWebhookEndpoints(controller.webserver);
 
