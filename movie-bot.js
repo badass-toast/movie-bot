@@ -1,6 +1,6 @@
 var Botkit = require('botkit');
 
-if (!process.env.clientId || !process.env.clientSecret || !process.env.verificationToken) {
+if (!process.env.CLIENT_ID || !process.env.CLIENT_ID || !process.env.SLACK_VERIFY_TOKEN) {
   console.log('Error: Specify clientId clientSecret and port in environment');
   process.exit(1);
 }
@@ -8,8 +8,8 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.verificat
 var controller = Botkit.slackbot({
   json_file_store: './db_slackbutton_slashcommand/',
 }).configureSlackApp({
-  clientId: process.env.clientId,
-  clientSecret: process.env.clientSecret,
+  clientId: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET,
   scopes: ['commands']
 });
 
@@ -33,7 +33,7 @@ var base_url = 'https://image.tmdb.org/t/p/w185';
 controller.on('slash_command', function (slashCommand, message) {
   switch (message.command) {
     case '/movie':
-      if (message.token !== process.env.VERIFICATION_TOKEN) return;
+      if (message.token !== process.env.SLACK_VERIFY_TOKEN) return;
       if (message.text === '') {
         slashCommand.replyPrivate(message, 'I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!');
         return;
