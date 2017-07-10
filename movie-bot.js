@@ -76,12 +76,8 @@ controller.on('slash_command', function (slashCommand, message) {
 ;
 
 function generate_movie_text(movies){
-  var image_url = movies.poster_path;
-  var movie_title = movies.title;
-  var discription = movies.overview;
   var release_uncut = movies.release_date;
   var release = release_uncut.substring(0, 4);
-  var vote = movies.vote_average;
   var genre_id = '';
   if(movies.genres[0] === undefined){
     genre_id = 'Who knows?';
@@ -96,7 +92,30 @@ function generate_movie_text(movies){
     homepage = movies.homepage.substring(7);
     more = 'More--> ';
   }
-  return (''+base_url+ '' +image_url+ '\n*' +movie_title+ '*\n' +discription+ '\n _' +genre_id+ ' ‧ ' +release+ ' ‧ ' +vote+ '/10 ‧ ' +runtime+ '_\n' +more+ '' +homepage+ '');
+  return {
+    "attachments": [
+      {
+        "fallback": "This is required so what...",
+        "color": "#4FCEAD",
+        "title": "" +movies.title+"",
+        "text": "" +movies.overview+ "",
+        "fields": [
+          {
+            "text": "_" +genre_id+ " ‧ " +release+ " ‧ " +movies.vote_average+ "/10 ‧ " +runtime+ "_",
+            "mrkdwn": true
+          },
+          {
+            "text": "" +more+ "" +homepage+ "",
+            "mrkdwn": true
+          }
+        ],
+        "image_url": "" +movies.poster_path+ "",
+        "thumb_url": "" +movies.poster_path+ "",
+        "footer": "Movie Bot by Matteo Piatti",
+        "footer_icon": "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-01-04/123219148900_1c45aa7f55e1af5797a0_72.png"
+      }
+    ]
+  }
 }
 
 
