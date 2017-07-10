@@ -108,8 +108,7 @@ function generate_movie_text(movies){
             "value": "" +genre_id+ " ‧ " +release+ " ‧ " +vote+ "/10 ‧ " +runtime+ "\n" +more+ "" +homepage+ ""
           }
         ],
-        //"image_url": ""+base_url+ "" +image_url+ "",
-        "thumb_url": ""+base_url+ "" +image_url+ "",
+        "image_url": ""+base_url+ "" +image_url+ "",
         "footer": "Movie Bot by Matteo Piatti",
         "footer_icon": "https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2017-01-04/123219148900_1c45aa7f55e1af5797a0_72.png"
       }
