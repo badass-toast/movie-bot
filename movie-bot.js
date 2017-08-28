@@ -10,7 +10,7 @@ if (!process.env.clientId) {
   console.log('Error: Specify port in environment')
 }
 
-if (!process.env.Client_ID || !process.env.Client_Secret || !process.env.Verification_Token|| !process.env.PORT) {
+if (!process.env.clientId || !process.env.clientSecret || !process.env.verfToken|| !process.env.port) {
   console.log('Error: Specify clientId clientSecret and port in environment');
 }
 
