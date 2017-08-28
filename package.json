@@ -12,7 +12,7 @@
     "url": "git+https://github.com/beepboophq/node-slack-bot.git"
   },
   "now": {
-    "name": "beer-bot",
+    "name": "movie-bot",
     "alias": "movie.matteobot.com"
   },
   "keywords": [
