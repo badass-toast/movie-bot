@@ -17,13 +17,13 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.verfToken
 var controller = Botkit.slackbot({
   json_file_store: '../tmp/db_slackbutton_slashcommand/',
 }).configureSlackApp({
-  clientId: process.env.Client_ID,
-  clientSecret: process.env.Client_Secret,
+  clientId: process.env.clientId,
+  clientSecret: process.env.clientSecret,
   scopes: ['commands']
 });
 
 
-controller.setupWebserver(process.env.PORT,function(err,webserver) {
+controller.setupWebserver(process.env.port,function(err,webserver) {
 
   controller.createWebhookEndpoints(controller.webserver);
 
@@ -42,7 +42,7 @@ var base_url = 'https://image.tmdb.org/t/p/w185';
 controller.on('slash_command', function (slashCommand, message) {
   switch (message.command) {
     case '/movie':
-      if (message.token !== process.env.Verification_Token) return;
+      if (message.token !== process.env.verfToken) return;
       if (message.text === '') {
         slashCommand.replyPrivate(message, 'I give you back a movie with all information according to your search word! Try type \n`/movie star wars episode 4` :smile: \n You have to be very specific!');
         return;
